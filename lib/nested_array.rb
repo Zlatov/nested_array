@@ -307,3 +307,7 @@ module NestedArray
     self
   end
 end
+
+class Array
+  include NestedArray
+end
