@@ -1,3 +1,4 @@
+require 'active_support/all'
 require "nested_array/version"
 
 module NestedArray
