@@ -1,17 +1,18 @@
 require 'nested_array'
 
-RSpec.describe NestedArray::Array, "описание NestedArray::Array" do
 
-  context "С мини массивом" do
-    a = [
-      {id: 1, pid: nil},
-      {id: 2, pid: 1},
-      {id: 3, pid: nil},
-    ]
-    b = NestedArray::Array.new a
+
+
+
+RSpec.describe NestedArray::Array, "описание" do
+
+  context "С малым массивом" do
+    a = load_json_fixture "small_flat"
+    a = NestedArray::Array.new a
+
     it "to_nested" do
-      c = b.to_nested
-      expect(c).to eq [{:id=>1, :pid=>nil, :children=>[{:id=>2, :pid=>1}]}, {:id=>3, :pid=>nil}]
+      b = a.to_nested id: "id", parent_id: "parent_id", children: "children"
+      expect(b).to eq load_json_fixture("small_nested")
     end
   end
 end

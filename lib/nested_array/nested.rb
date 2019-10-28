@@ -10,7 +10,7 @@ module NestedArray::Nested
     NESTED_OPTIONS = {
       # Имена полей для получения/записи информации, чувствительны к string/symbol
       id: :id,
-      parent_id: :pid,
+      parent_id: :parent_id,
       children: :children,
       level: :level,
 
