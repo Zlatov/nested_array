@@ -1,6 +1,17 @@
 # NestedArray
 
+Предназначен для преобразования в древовидную структуру плоских данных описанных по паттерну «Список смежности» (Adjacency List), то есть в нодах указа предок `parent_id`.
 
+```ruby
+[
+  {id: 1, parent_id: nil, name: 'first', …},
+  {id: 2, parent_id:   1, name: 'second', …},
+  …
+]
+# ↓ ↓ ↓
+[
+]
+```
 
 ## Installation
 
