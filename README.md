@@ -1,5 +1,21 @@
 # NestedArray
 
+It is intended for transformation into a tree structure of flat data described by the “Adjacency List” pattern, that is, the ancestor is specified in the nodes by the field `parent_id`. For instance:
+
+```ruby
+[
+  {id: 1, parent_id: nil, name: 'first', …},
+  {id: 2, parent_id:   1, name: 'second', …},
+  {id: 3, parent_id:   1, name: 'third', …}
+]
+# ↓ ↓ ↓
+[
+  {id: 1, parent_id: nil, name: 'first', children: [
+    {id: 2, parent_id:   1, name: 'second', …},
+    {id: 3, parent_id:   1, name: 'third', …}
+  ], …}
+]
+```
 
 
 ## Installation
@@ -7,20 +23,22 @@
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'nested_array'
+gem 'nested_array', '~> 2.0.0'
 ```
 
-And then execute:
+And then execute: `bundle`.
 
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install nested_array
+Or install it yourself as `gem install nested_array`.
 
 ## Usage
 
-TODO: Write usage instructions here
+```html
+  <ul>
+    <%= Catalogs.all.to_a.to_nested.nested_to_html do |node| %>
+      <% link_to "#{node['name']}", catalog_view_path(node['slug']) %>
+    <% end %>
+  </ul>
+```
 
 ## Development
 
@@ -30,7 +48,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/nested_array.
+Bug reports and pull requests are welcome on GitHub at https://github.com/Zlatov/nested_array.
 
 ## License
 
