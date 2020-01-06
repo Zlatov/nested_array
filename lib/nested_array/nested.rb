@@ -7,12 +7,12 @@ module NestedArray::Nested
 
   included do |recipient|
 
-    NESTED_OPTIONS = {
+    NESTED_OPTIONS ||= {
       # Имена полей для получения/записи информации, чувствительны к string/symbol
-      id: :id,
-      parent_id: :parent_id,
-      children: :children,
-      level: :level,
+      id: 'id',
+      parent_id: 'parent_id',
+      children: 'children',
+      level: 'level',
 
       # Параметры для преобразования в nested
       hashed: false,
@@ -248,14 +248,14 @@ module NestedArray::Nested
         html+= options[:li]
         html+= yield(node.clone, parents.clone, level)
 
-        if !node[:children].nil? && node[:children].length > 0
+        if !node[options[:children]].nil? && node[options[:children]].length > 0
           level+= 1
           html+= "\n" if !options[:inline]
           html+= options[:tab] * (level * 2) if options[:tabulated]
           html+= options[:ul]
           html+= "\n" if !options[:inline]
           parents[level] = node.clone
-          cache[level] = node[:children]
+          cache[level] = node[options[:children]]
           i[level] = 0
         else
           html+= options[:_li]
@@ -274,7 +274,7 @@ module NestedArray::Nested
         level-= 1
       end
     end
-    html
+    html.html_safe
   end
 
   # "Скеивание" вложенных структур

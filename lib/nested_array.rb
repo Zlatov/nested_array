@@ -10,3 +10,8 @@ module NestedArray
     include NestedArray::Nested
   end
 end
+
+class Array
+
+  include ::NestedArray::Nested
+end
