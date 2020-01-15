@@ -31,6 +31,10 @@ module NestedArray::Nested
       # Параматры для "склеивания" вложенных структур
       path_separator: '-=path_separator=-',
       path_key: 'text',
+
+      # Настройки формирования массива для опций тега <select>
+      option_value: 'id', # Что брать в качестве значений при формировании опций селекта.
+      option_text: 'name',
     }
   end
 
@@ -47,8 +51,9 @@ module NestedArray::Nested
       node = cache[level][i[level]]
       i[level]+= 1
       if node != nil
+        is_last_children = cache[level][i[level]].blank?
 
-        yield(node.clone, parents.clone, level)
+        yield(node.clone, parents.clone, level, is_last_children)
 
         if !node[options[:children]].nil? && node[options[:children]].length > 0
           level+= 1
@@ -275,6 +280,29 @@ module NestedArray::Nested
       end
     end
     html.html_safe
+  end
+
+  # 
+  # Возвращает массив для формирования опций html-тега <select>
+  # с псевдографикой, позволяющей вывести древовидную структуру.
+  # ```
+  # [['option_text1', 'option_value1'],['option_text2', 'option_value2'],…]
+  # ```
+  def nested_to_options options={}
+    options = NESTED_OPTIONS.merge options
+    ret = []
+    last = []
+    each_nested do |node, parents, level, is_last|
+      last[level+1] = is_last
+      node_text = node[options[:option_text]]
+      node_level = (1..level).map{|l| last[l] == true ? ' ' : '┃'}.join
+      node_last = is_last ? '┗' : '┣'
+      node_children = node[options[:children]].present? && node[options[:children]].length > 0 ? '┳' : '━'
+      option_text = "#{node_level}#{node_last}#{node_children}╸#{node_text}"
+      option_value = node[options[:option_value]]
+      ret.push [option_text, option_value]
+    end
+    ret
   end
 
   # "Скеивание" вложенных структур
