@@ -41,6 +41,66 @@ gem 'nested_array', '~> 2.0.0'
   </ul>
 ```
 
+__Опции `to_nested`__
+
+`Catalogs.all.to_a.to_nested(options)`
+
+Для указания базовых имён полей ноды (чувствительны к string/symbol):
+
+```
+id: 'id',
+parent_id: 'parent_id',
+children: 'children',
+level: 'level',
+```
+
+Дополнительные параметры преобразования:
+
+```
+hashed: false,
+add_level: false,
+root_id: nil,
+```
+
+__Опции `nested_to_html`__
+
+```
+tabulated: true,
+inline: false,
+tab: "\t",
+ul:  '<ul>',
+_ul: '</ul>',
+li:  '<li>',
+_li: '</li>',
+```
+
+### "Скеивание" вложенных структур `concat_nested`
+
+Ноды склеиваются если путь к ним одинаков;
+Путь определяется из сложения Текстов (конфигурируемо через :path_key);
+
+__Опции `nested_to_html`__
+
+```
+path_separator: '-=path_separator=-',
+path_key: 'text',
+```
+
+### Формирования опций для html-тега &lt;select&gt; `nested_to_options`
+
+Возвращает массив с псевдографикой, позволяющей вывести древовидную структуру.
+
+```
+[['option_text1', 'option_value1'],['option_text2', 'option_value2'],…]
+```
+
+__Опции `nested_to_options`__
+
+```
+option_value: 'id', # Что брать в качестве значений при формировании опций селекта.
+option_text: 'name',
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
