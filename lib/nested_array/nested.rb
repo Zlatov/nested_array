@@ -295,7 +295,7 @@ module NestedArray::Nested
     each_nested do |node, parents, level, is_last|
       last[level+1] = is_last
       node_text = node[options[:option_text]]
-      node_level = (1..level).map{|l| last[l] == true ? '&nbsp;' : '┃'}.join
+      node_level = (1..level).map{|l| last[l] == true ? ' ' : '┃'}.join
       node_last = is_last ? '┗' : '┣'
       node_children = node[options[:children]].present? && node[options[:children]].length > 0 ? '┳' : '━'
       option_text = "#{node_level}#{node_last}#{node_children}╸#{node_text}"
