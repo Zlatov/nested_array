@@ -11,7 +11,7 @@ module NestedArray
   end
 end
 
-class Array
+# class Array
 
-  include ::NestedArray::Nested
-end
+#   include ::NestedArray::Nested
+# end

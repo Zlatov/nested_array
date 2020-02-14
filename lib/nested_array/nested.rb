@@ -38,6 +38,9 @@ module NestedArray::Nested
     }
   end
 
+  # 
+  # Перебирает вложенную стуктуру.
+  # 
   def each_nested options={}
     options = NESTED_OPTIONS.merge options
     level = 0

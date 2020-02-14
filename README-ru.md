@@ -23,48 +23,78 @@
 Добавте строку в _Gemfile_ вашего приложения:
 
 ```ruby
-gem 'nested_array', '~> 2.0.0'
+gem 'nested_array', '~> 1.1.0'
 ```
 
-И затем выполните `bundle`.
+И затем выполните `bundle install`.
 
 Или установите его как `gem install nested_array`
 
 
 ## Использование
 
-```html
-  <ul>
-    <%= Catalogs.all.to_a.to_nested.nested_to_html do |node| %>
-      <% link_to "#{node['name']}", catalog_view_path(node['slug']) %>
-    <% end %>
-  </ul>
+__Список методов__
+
+* `to_nested` — преобразует плоскую структуро во вложенную;
+* `each_nested` — перебирает вложенную стуктуру;
+* `each_nested!` — перебирает вложенную стуктуру, предоставляя доступ к исходным данным;
+* `nested_to_html` — преобразует вложенную структуру в html вёрстку (многоуровневый список `<ul><li>…`);
+* `nested_to_options` — преобразует вложенную в массив для формирования опций html-тега `<select>` с псевдографикой;
+* `concat_nested` — скеивание вложенных структур, ноды склеиваются если путь к ним одинаков.
+
+### to_nested
+
+Преобразует плоскую структуро во вложенную.
+
+```ruby
+a = [{'id' => 1, 'parent_id' => nil}]
+a = NestedArray::Array.new 
+b = a.to_nested
 ```
 
-__Опции `to_nested`__
+__Опции__
 
-`Catalogs.all.to_a.to_nested(options)`
+У каждой ноды вложенной структуры есть базовые свойства, такие как идентификатор, идентификатор предка и другие. Для доступа к этим данным используются ключи, которые можно настроить как в примере ниже. По умолчанию используются следующие __строковые__ (_чувствительны к string/symbol_) ключи:
 
-Для указания базовых имён полей ноды (чувствительны к string/symbol):
-
-```
-id: 'id',
-parent_id: 'parent_id',
-children: 'children',
-level: 'level',
-```
-
-Дополнительные параметры преобразования:
-
-```
-hashed: false,
-add_level: false,
-root_id: nil,
+```ruby
+b = a.to_nested({
+  id: 'id',               # указывает какое свойство ноды является идентификатором;
+  parent_id: 'parent_id', # -//- предком;
+  children: 'children',   # -//- массивом потомков;
+  level: 'level'          # -//- дополнительным свойством с уровнем вложенности;
+  root_id: nil            # определяет что является корнем для построения дерева,
+                          # например, для построения ветви корнем корнем
+                          # является идентификатор одной из нод.
+})
 ```
 
-__Опции `nested_to_html`__
+Дополнительные опции преобразования:
 
+```ruby
+b = a.to_nested({
+  hashed: false,    # потомки могут храниться не в массиве а в хэше;
+  add_level: false, # добавляет в ноду информацию о уровене вложенности ноды;
+})
 ```
+
+### each_nested
+
+Перебирает вложенную стуктуру.
+
+```ruby
+nested.each_nested do |node, parents, level, is_last_children|
+  puts node             # > {'id' => ...}
+  puts parents          # > [{'id' => ...}]
+  puts level            # > 0
+  puts is_last_children # > false
+end
+```
+
+### nested_to_html
+
+__Опции__
+
+```ruby
 tabulated: true,
 inline: false,
 tab: "\t",
@@ -74,31 +104,36 @@ li:  '<li>',
 _li: '</li>',
 ```
 
-### "Скеивание" вложенных структур `concat_nested`
+### nested_to_options
 
-Ноды склеиваются если путь к ним одинаков;
-Путь определяется из сложения Текстов (конфигурируемо через :path_key);
-
-__Опции `nested_to_html`__
-
-```
-path_separator: '-=path_separator=-',
-path_key: 'text',
-```
-
-### Формирования опций для html-тега &lt;select&gt; `nested_to_options`
+Формирования опций для html-тега &lt;select&gt;
 
 Возвращает массив с псевдографикой, позволяющей вывести древовидную структуру.
 
-```
+```ruby
+
 [['option_text1', 'option_value1'],['option_text2', 'option_value2'],…]
 ```
 
-__Опции `nested_to_options`__
+__Опции__
 
-```
+```ruby
 option_value: 'id', # Что брать в качестве значений при формировании опций селекта.
 option_text: 'name',
+```
+
+### concat_nested
+
+Скеивание вложенных структур.
+
+* Ноды склеиваются если путь к ним одинаков;
+* Путь определяется из сложения Текстов (конфигурируемо через :path_key);
+
+__Опции__
+
+```ruby
+path_separator: '-=path_separator=-',
+path_key: 'text',
 ```
 
 ## Development
