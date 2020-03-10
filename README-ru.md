@@ -18,12 +18,15 @@
 ```
 
 
+
+
 ## Установка
 
 Добавте строку в _Gemfile_ вашего приложения:
 
 ```ruby
-gem 'nested_array', '~> 1.1.0'
+gem 'nested_array', '~> 1.0.0' # версия не расширяет базовый класс Array методами гема. Для использования необходимо преобразовать данные к новому типу, см ниже.
+gem 'nested_array', '~> 2.0.0' # Версия с автоматическим расширением базового класса Array методами гема.
 ```
 
 И затем выполните `bundle install`.
@@ -31,24 +34,31 @@ gem 'nested_array', '~> 1.1.0'
 Или установите его как `gem install nested_array`
 
 
+
+
 ## Использование
 
+<a name="methods"></a>
 __Список методов__
 
-* `to_nested` — преобразует плоскую структуро во вложенную;
-* `each_nested` — перебирает вложенную стуктуру;
-* `each_nested!` — перебирает вложенную стуктуру, предоставляя доступ к исходным данным;
-* `nested_to_html` — преобразует вложенную структуру в html вёрстку (многоуровневый список `<ul><li>…`);
-* `nested_to_options` — преобразует вложенную в массив для формирования опций html-тега `<select>` с псевдографикой;
-* `concat_nested` — скеивание вложенных структур, ноды склеиваются если путь к ним одинаков.
+* [to_nested](#to_nested) — преобразует плоскую структуру во вложенную;
+* [each_nested](#each_nested) — перебирает вложенную стуктуру;
+* [each_nested!](#each_nested) — перебирает вложенную стуктуру, предоставляя доступ к исходным данным;
+* [nested_to_html](#nested_to_html) — преобразует вложенную структуру в html вёрстку (многоуровневый список `<ul><li>…`);
+* [nested_to_options](#nested_to_options) — преобразует вложенную структуру в массив для формирования опций html-тега `<select>` с псевдографикой;
+* [concat_nested](#concat_nested) — скеивание вложенных структур, ноды склеиваются если путь к ним одинаков.
 
-### to_nested
 
-Преобразует плоскую структуро во вложенную.
+
+
+<a name="to_nested"></a>
+### to_nested [↑](#methods "К методам")
+
+Преобразует плоскую структуру во вложенную.
 
 ```ruby
 a = [{'id' => 1, 'parent_id' => nil}]
-a = NestedArray::Array.new 
+a = NestedArray::Array.new a
 b = a.to_nested
 ```
 
@@ -77,7 +87,11 @@ b = a.to_nested({
 })
 ```
 
-### each_nested
+
+
+
+<a name="each_nested"></a>
+### each_nested [↑](#methods "К методам")
 
 Перебирает вложенную стуктуру.
 
@@ -90,21 +104,69 @@ nested.each_nested do |node, parents, level, is_last_children|
 end
 ```
 
-### nested_to_html
+
+
+
+<a name="nested_to_html"></a>
+### nested_to_html [↑](#methods "К методам")
+
+Формирует _html_-код для вывода вложенных структур с использованием вложенных друг в друга списков `<ul>`.
+
+__Пример__
+
+```ruby
+[
+  {'id' => 1, 'parent_id' => nil, 'name' => 'first'},
+  {'id' => 2, 'parent_id' =>   1, 'name' => 'second'},
+  {'id' => 3, 'parent_id' =>   1, 'name' => 'third'}
+].to_nested.nested_to_html do |node|
+  node['name']
+end
+```
+
+Вернёт
+
+```html
+	<li>first
+		<ul>
+			<li>second</li>
+			<li>third</li>
+		</ul>
+	</li>
+```
+
+__Расширенный пример__
+
+```ruby
+.nested_to_html li: '<li class="my">', _ul: '<i></i></ul>' do |node, parents, level|
+  block_options = {}
+  block_options[:li] = '<li class="my current">' if node['id'] == 2
+  [
+  	"id: #{node['id']}, #{node['name']}, parent name: #{parents[level]&.[]('name')}",
+  	block_options
+  ]
+end
+```
 
 __Опции__
+
+Все опции могут быть аргументами метода, и только некоторые опции влияют на результат через блок — на лету (последняя строка блока).
 
 ```ruby
 tabulated: true,
 inline: false,
 tab: "\t",
-ul:  '<ul>',
+ul:  '<ul>', # может задаваться блоком
 _ul: '</ul>',
-li:  '<li>',
+li:  '<li>', # может задаваться блоком
 _li: '</li>',
 ```
 
-### nested_to_options
+
+
+
+<a name="nested_to_options"></a>
+### nested_to_options [↑](#methods "К методам")
 
 Формирования опций для html-тега &lt;select&gt;
 
@@ -122,7 +184,11 @@ option_value: 'id', # Что брать в качестве значений п�
 option_text: 'name',
 ```
 
-### concat_nested
+
+
+
+<a name="concat_nested"></a>
+### concat_nested [↑](#methods "К методам")
 
 Скеивание вложенных структур.
 
@@ -136,16 +202,23 @@ path_separator: '-=path_separator=-',
 path_key: 'text',
 ```
 
-## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
-## Contributing
+## Разработка
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/Zlatov/nested_array.
+…
 
-## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+
+
+## Содействие
+
+…
+
+
+
+
+## Лицензия
+
+В соответствии с условиями [лицензии MIT](https://opensource.org/licenses/MIT).

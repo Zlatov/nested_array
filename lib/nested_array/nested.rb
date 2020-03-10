@@ -252,15 +252,16 @@ module NestedArray::Nested
       i[level]+= 1
       if node != nil
 
+        node_html, node_options = yield(node.clone, parents.clone, level)
         html+= options[:tab] * (level * 2 + 1) if options[:tabulated]
-        html+= options[:li]
-        html+= yield(node.clone, parents.clone, level)
+        html+= node_options&.[](:li) || options[:li]
+        html+= node_html.to_s
 
         if !node[options[:children]].nil? && node[options[:children]].length > 0
           level+= 1
           html+= "\n" if !options[:inline]
           html+= options[:tab] * (level * 2) if options[:tabulated]
-          html+= options[:ul]
+          html+= node_options&.[](:ul) || options[:ul]
           html+= "\n" if !options[:inline]
           parents[level] = node.clone
           cache[level] = node[options[:children]]
