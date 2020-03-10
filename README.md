@@ -23,6 +23,7 @@ It is intended for transformation into a tree structure of flat data described b
 Add this line to your application's Gemfile:
 
 ```ruby
+gem 'nested_array', '~> 1.0.0'
 gem 'nested_array', '~> 2.0.0'
 ```
 
