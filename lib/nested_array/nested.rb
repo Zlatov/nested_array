@@ -302,7 +302,7 @@ module NestedArray::Nested
       node_level = (1..level).map{|l| last[l] == true ? '&nbsp;' : '┃'}.join
       node_last = is_last ? '┗' : '┣'
       node_children = node[options[:children]].present? && node[options[:children]].length > 0 ? '┳' : '━'
-      option_text = "#{node_level}#{node_last}#{node_children}╸#{node_text}"
+      option_text = "#{node_level}#{node_last}#{node_children}╸".html_safe + "#{node_text}"
       option_value = node[options[:option_value]]
       ret.push [option_text, option_value]
     end
