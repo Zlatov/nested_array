@@ -56,7 +56,7 @@ module NestedArray::Nested
       if node != nil
         is_last_children = cache[level][i[level]].blank?
 
-        yield(node.clone, parents.clone, level, is_last_children)
+        yield(node.clone, parents.clone, level, is_last_children, node.origin)
 
         if !node[options[:children]].nil? && node[options[:children]].length > 0
           level+= 1
@@ -85,8 +85,9 @@ module NestedArray::Nested
       node = cache[level][i[level]]
       i[level]+= 1
       if node != nil
+        is_last_children = cache[level][i[level]].blank?
 
-        yield(node, parents, level)
+        yield(node, parents, level, is_last_children, node.origin)
 
         if !node[options[:children]].nil? && node[options[:children]].length > 0
           level+= 1
@@ -115,13 +116,14 @@ module NestedArray::Nested
     nested = options[:hashed] ? {} : []
     # Перебираем элементы в любом порядке!
     self.each do |value|
+      origin = value
       value = value.serializable_hash if !value.is_a? Hash
       # 1. Если нет родителя текущего элемента, и текущий элемент не корневой, то:
       # 1.1 создадим родителя
       # 1.2 поместим в кэш
       if !(cache.key? value[fields[:parent_id]]) && (value[fields[:parent_id]] != options[:root_id])
         # 1.1
-        temp = {}
+        temp = OpenStruct.new
         fields.each do |key, field|
           case key
           when :id
@@ -151,6 +153,7 @@ module NestedArray::Nested
         value.keys.each do |field|
           cache[value[fields[:id]]][field] = value[field] if !(field.in? fields)
         end
+        cache[value[fields[:id]]].origin = origin
         # 2.2
         # Если текущий элемент не корневой - поместим в родителя, беря его из кэш
         if value[fields[:parent_id]] != options[:root_id]
@@ -174,7 +177,7 @@ module NestedArray::Nested
       # 3.3 поместим в родителя
       else
         # 3.1
-        temp = {}
+        temp = OpenStruct.new
         fields.each do |key, field|
           case key
           when :id
@@ -190,6 +193,7 @@ module NestedArray::Nested
         value.keys.each do |field|
           temp[field] = value[field] if !(field.in? fields)
         end
+        temp.origin = origin
         # 3.2
         cache[value[fields[:id]]] = temp
         # 3.3
