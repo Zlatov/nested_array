@@ -313,6 +313,29 @@ module NestedArray::Nested
     ret
   end
 
+  # Преобразует вложенную структуру данных в плоскую, но добавляет в значение
+  # поля отвечающего за текстовое представление (:name) псевдографику
+  # древовидной структуры.
+  # Это позволяет вывести тэг select в сносном виде для использования с
+  # вложенными структурами.
+  def nested_to_collection_select(options={})
+    options = NESTED_OPTIONS.merge options
+    ret = []
+    last = []
+    each_nested do |node, parents, level, is_last, origin|
+      last[level+1] = is_last
+      node_text = node[options[:option_text]]
+      node_level = (1..level).map{|l| last[l] == true ? '&nbsp;' : '┃'}.join
+      node_last = is_last ? '┗' : '┣'
+      node_children = node[options[:children]].present? && node[options[:children]].length > 0 ? '┳' : '━'
+      option_text = "#{node_level}#{node_last}#{node_children}╸".html_safe + "#{node_text}"
+      option_value = node[options[:option_value]]
+      node[options[:option_text]] = option_text
+      ret.push node
+    end
+    ret
+  end
+
   # "Скеивание" вложенных структур
   # ноды склеиваются если путь к ним одинаков;
   # путь определяется из сложения Текстов (конфигурируемо через :path_key);

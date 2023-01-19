@@ -55,6 +55,7 @@ __Список методов__
 * [each_nested!](#each_nested) — перебирает вложенную стуктуру, предоставляя доступ к исходным данным;
 * [nested_to_html](#nested_to_html) — преобразует вложенную структуру в html вёрстку (многоуровневый список `<ul><li>…`);
 * [nested_to_options](#nested_to_options) — преобразует вложенную структуру в массив для формирования опций html-тега `<select>` с псевдографикой;
+* [nested_to_collection_select](#nested_to_collection_select) — преобразует вложенную структуру в плоскую но добавляет псевдографику в тектовое поле для формирования тэга `<select>`;
 * [concat_nested](#concat_nested) — скеивание вложенных структур, ноды склеиваются если путь к ним одинаков.
 
 
@@ -194,6 +195,56 @@ __Опции__
 ```ruby
 option_value: 'id', # Что брать в качестве значений при формировании опций селекта.
 option_text: 'name',
+```
+
+
+
+
+<a name="nested_to_collection_select"></a>
+### nested_to_collection_select [↑](#methods "К методам")
+
+Преобразует вложенную структуру данных в плоскую, но добавляет в значение поля
+отвечающего за текстовое представление (:name) псевдографику древовидной
+структуры.
+
+Это позволяет вывести тэг select в сносном виде для использования с вложенными
+структурами.
+
+Пример с хелпером `collection_select`
+
+```rb
+<%= form.collection_select :catalog_ids,
+  Catalog.all.to_a.to_nested.nested_to_collection_select, :id, :name,
+  {
+    # prompt: true
+    # include_blank: true
+  },
+  {
+    multiple: true,
+    size: 10
+  }
+%>
+```
+
+Пример с хелпером `select` в сочетании с `options_from_collection_for_select`
+
+```erb
+<% catalogs = Catalog.all.to_a %>
+<%= form.select :catalog_ids,
+  options_from_collection_for_select(
+    catalogs.to_nested.nested_to_collection_select, :id, :name,
+    disabled: catalogs.select{|x| x.hidden?}.pluck(:id),
+    selected: form.object.catalog_ids
+  ),
+  {
+    # prompt: true
+    # include_blank: true
+  },
+  {
+    multiple: true,
+    size: 10
+  }
+%>
 ```
 
 
