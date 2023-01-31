@@ -2,4 +2,4 @@ source "https://rubygems.org"
 
 gemspec
 
-gem 'activesupport', '~> 6.0'
+gem 'activesupport', '~> 7.0'
