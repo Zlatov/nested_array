@@ -1,0 +1,94 @@
+# Игнорировать отсутствие магического комментария:
+# frozen_string_literal: true
+# 
+# Надо понимать что мы теряем производительность если не используем замороженные
+# строки там где это возможно, применяйте!: ` -"неизменяемая строка" `
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+# Надо понимать что есть качественное различие между
+# 
+# module Foo
+#   class Bar
+#   end
+# end
+# 
+# и
+# 
+# class Foo::Bar
+# end
+# 
+# Если где то в модуль вынесен код:
+# 
+# module Foo
+#   X = 42
+# end
+# 
+# то следует инициализировать модуль До класса-потомка, иначе ошибка. Как выход,
+# рубокоп предлагает везде использовать первый синтаксис, а это некрасиво)
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+# Корячить пустые методы с точка-запятой, нет уж извините!
+Style/EmptyMethod:
+  Enabled: false
+
+# Не даёт сравнимать с нуль (... == 0), заставляет переписывать на `.zero?`, как-то вообще не согласен!
+Style/NumericPredicate:
+  Enabled: false
+
+# Разбивать метод или блок на подметоды только ради красоты кода не хочу, если
+# всё что нужно сделать в методе задокумментировано и это не дублирующий код а
+# просто большая отдельная задача, то почему бы и не 2000 строк.
+Metrics/MethodLength:
+  Max: 100
+Metrics/BlockLength:
+  Max: 100
+Metrics/CyclomaticComplexity:
+  Max: 15
+Metrics/PerceivedComplexity:
+  Max: 15
+
+Metrics/ClassLength:
+  Max: 300
+
+# fail обычно бросает исключение, raise пребрасывает после отлова при необходимости.
+Style/SignalException:
+  Enabled: false
+
+# Что может быть более привычным чем простой if
+Style/NegatedIf:
+  Enabled: false
+
+# Assignment - присвоения, в том числе +=...
+# Branch - явное прямое ветвление программы (вызов методов).
+# Condition - логические выражения
+# AbcSize = Math.sqrt(A * A + B * B + C * C)
+Metrics/AbcSize:
+  # Enabled: false
+  Max: 100
+  CountRepeatedAttributes: false
+
+# Я так привык — каждый пробел (отступ) должен быть обоснован, а не нафигачен
+# до «красивого» отступа.
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_fixed_indentation
+
+Layout/HashAlignment:
+  EnforcedHashRocketStyle: table
+  EnforcedColonStyle: key
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
+# Короткий синтаксис для слабаков! =) на мой взгляд, когда в одном хэш смешан
+# короткий и полный синтаксис, тогда код читается рывками (читаем один
+# синтаксис, преключаемся на другой, продолжать читать и потом вдруг обратно).
+# Возможно дело привычки.
+Style/HashSyntax:
+  EnforcedShorthandSyntax: never
+
+# Терпеть не могу пробелы ради выравнивания, предпочитаю устанавливать
+# необходимое количество отступов (отступ в ruby − кратен двум пробелам).
+Layout/MultilineOperationIndentation:
+  EnforcedStyle: indented
