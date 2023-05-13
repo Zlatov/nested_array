@@ -241,6 +241,9 @@ module NestedArray::Nested
     nested
   end
 
+  def to_flat
+  end
+
   def nested_to_html options={}
     options = NESTED_OPTIONS.merge options
     html = ''
