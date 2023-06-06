@@ -3,7 +3,7 @@ RSpec.describe NestedArray do
   #   expect(Array.instance_methods.include?(:to_nested)).to eq(true)
   # end
 
-  it 'Инстанс класса Array обладает основными запланированными методами' do
+  it 'Инстанс класса Array обладает всеми запланированными методами' do
     # blank_array = [:to_nested, :to_flat, :each_nested] - Array.instance_methods
     # expect(blank_array.length).to eq(0)
     expect(Array.instance_methods.include?(:to_nested)).to eq(true)
