@@ -47,21 +47,22 @@ gem "nested_array", "~> 3.0"
 ## Использование
 
 <a name="methods"></a>
-__Список методов__
+* Список методов
+  * [to_nested](#to_nested) — преобразует плоскую структуру во вложенную;
+  * [each_nested](#each_nested) — перебирает вложенную стуктуру;
+  * [each_nested!](#each_nested) — перебирает вложенную стуктуру, предоставляя доступ к исходным данным;
+  * [nested_to_html](#nested_to_html) — преобразует вложенную структуру в html вёрстку (многоуровневый список `<ul><li>…`);
+  * [nested_to_options](#nested_to_options) — преобразует вложенную структуру в массив для формирования опций html-тега `<select>` с псевдографикой;
+  * [nested_to_collection_select](#nested_to_collection_select) — преобразует вложенную структуру в плоскую но добавляет псевдографику в тектовое поле для формирования тэга `<select>`;
+  * [concat_nested](#concat_nested) — скеивание вложенных структур, ноды склеиваются если путь к ним одинаков.
+* Вывод
+  * Вложенный список ul > li
 
-* [to_nested](#to_nested) — преобразует плоскую структуру во вложенную;
-* [each_nested](#each_nested) — перебирает вложенную стуктуру;
-* [each_nested!](#each_nested) — перебирает вложенную стуктуру, предоставляя доступ к исходным данным;
-* [nested_to_html](#nested_to_html) — преобразует вложенную структуру в html вёрстку (многоуровневый список `<ul><li>…`);
-* [nested_to_options](#nested_to_options) — преобразует вложенную структуру в массив для формирования опций html-тега `<select>` с псевдографикой;
-* [nested_to_collection_select](#nested_to_collection_select) — преобразует вложенную структуру в плоскую но добавляет псевдографику в тектовое поле для формирования тэга `<select>`;
-* [concat_nested](#concat_nested) — скеивание вложенных структур, ноды склеиваются если путь к ним одинаков.
 
-
-
+### Список методов
 
 <a name="to_nested"></a>
-### to_nested [↑](#methods "К методам")
+#### to_nested [↑](#methods "К методам")
 
 Преобразует плоскую структуру во вложенную.
 
@@ -103,7 +104,7 @@ b = a.to_nested({
 
 
 <a name="each_nested"></a>
-### each_nested [↑](#methods "К методам")
+#### each_nested [↑](#methods "К методам")
 
 Перебирает вложенную стуктуру.
 
@@ -120,7 +121,7 @@ end
 
 
 <a name="nested_to_html"></a>
-### nested_to_html [↑](#methods "К методам")
+#### nested_to_html [↑](#methods "К методам")
 
 Формирует _html_-код для вывода вложенных структур с использованием вложенных друг в друга списков `<ul>`.
 
@@ -178,7 +179,7 @@ _li: '</li>',
 
 
 <a name="nested_to_options"></a>
-### nested_to_options [↑](#methods "К методам")
+#### nested_to_options [↑](#methods "К методам")
 
 Формирования опций для html-тега &lt;select&gt;
 
@@ -200,7 +201,7 @@ option_text: 'name',
 
 
 <a name="nested_to_collection_select"></a>
-### nested_to_collection_select [↑](#methods "К методам")
+#### nested_to_collection_select [↑](#methods "К методам")
 
 Преобразует вложенную структуру данных в плоскую, но добавляет в значение поля
 отвечающего за текстовое представление (:name) псевдографику древовидной
@@ -250,7 +251,7 @@ option_text: 'name',
 
 
 <a name="concat_nested"></a>
-### concat_nested [↑](#methods "К методам")
+#### concat_nested [↑](#methods "К методам")
 
 Скеивание вложенных структур.
 
@@ -265,6 +266,52 @@ path_key: 'text',
 ```
 
 
+
+### Вывод
+
+#### Вложенный список ul-li
+
+![Screenshot](doc/images/01.png)
+
+```ruby
+<ul>
+  <% @catalogs.to_a.to_nested.each_nested do |node, origin| %>
+    <%= node.before -%>
+    <%= node.name -%>
+    <%= node.after -%>
+  <% end %>
+</ul>
+```
+
+![Screenshot](doc/images/02.png)
+
+#### Вложенный расскрывающийся список
+
+```ruby
+<ul class="nested_array-details">
+  <% @catalogs.to_a.to_nested.each_nested details: true do |node, origin| %>
+    <%= node.before -%>
+    <%= node.name -%>
+    <%= node.after -%>
+  <% end %>
+</ul>
+```
+
+![Screenshot](doc/images/03.png)
+
+Если необходимо открыть некоторые узлы
+
+```ruby
+<ul class="nested_array-details">
+  <% @catalogs.to_a.to_nested.each_nested details: true do |node, origin| %>
+    <%= node.before -%>
+    <%= node.name -%>
+    <%= node.after(open: node.is_has_children) -%>
+  <% end %>
+</ul>
+```
+
+![Screenshot](doc/images/04.png)
 
 
 ## Разработка

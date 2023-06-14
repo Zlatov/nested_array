@@ -18,6 +18,7 @@ module NestedArray::Nested
       # Параметры для преобразования в nested
       hashed: false,
       root_id: nil,
+      branch_id: nil,
 
       # Параметры для преобразования в html
       tabulated: true,
@@ -31,6 +32,9 @@ module NestedArray::Nested
       # Настройки формирования массива для опций тега <select>
       option_value: 'id', # Что брать в качестве значений при формировании опций селекта.
       option_text: 'name',
+      thin_option: false,
+      pseudographics:      %w(┳ ━ ╸ ┣ ┗ &nbsp; ┃),
+      thin_pseudographics: %w(┬ ─ ╴ ├ └ &nbsp; │),
 
       # Выводить html теги от раскрывающегося списка на основе тега details.
       details: false,
@@ -95,10 +99,12 @@ module NestedArray::Nested
           end
         # иначе, текущий элемент корневой, поместим в nested
         else
-          if options[:hashed]
-            nested[value[fields[:id]]] = cache[value[fields[:id]]]
-          else
-            nested << cache[value[fields[:id]]]
+          if options[:branch_id].nil? || options[:branch_id] == value[fields[:id]]
+            if options[:hashed]
+              nested[value[fields[:id]]] = cache[value[fields[:id]]]
+            else
+              nested << cache[value[fields[:id]]]
+            end
           end
         end
       # 3. Иначе, текущий элемент не создан, тогда:
@@ -129,10 +135,12 @@ module NestedArray::Nested
           end
         # иначе, текущий элемент корневой, поместим в nested
         else
-          if options[:hashed]
-            nested[value[fields[:id]]] = cache[value[fields[:id]]]
-          else
-            nested << cache[value[fields[:id]]]
+          if options[:branch_id].nil? || options[:branch_id] == value[fields[:id]]
+            if options[:hashed]
+              nested[value[fields[:id]]] = cache[value[fields[:id]]]
+            else
+              nested << cache[value[fields[:id]]]
+            end
           end
         end
       end
@@ -320,18 +328,20 @@ module NestedArray::Nested
   # ```
   # [['option_text1', 'option_value1'],['option_text2', 'option_value2'],…]
   # ```
-  def nested_to_options options={}
+  def nested_to_options(options = {})
     options = NESTED_OPTIONS.merge options
     ret = []
+
     last = []
-    # each_nested do |node, parents, level, is_last|
+    downhorizontal, horizontal, left, rightvertical, rightup, space, vertical = options[:thin_pseudographic] ? options[:thin_pseudographics] : options[:pseudographics]
+
     each_nested do |node, origin|
       last[node.level + 1] = node.is_last_children
       node_text = node[options[:option_text]]
-      node_level = (1..node.level).map{|l| last[l] == true ? '&nbsp;' : '┃'}.join
-      node_last = node.is_last_children ? '┗' : '┣'
-      node_children = node[options[:children]].present? && node[options[:children]].length > 0 ? '┳' : '━'
-      option_text = "#{node_level}#{node_last}#{node_children}╸".html_safe + "#{node_text}"
+      node_level = (1..node.level).map{|l| last[l] == true ? space : vertical}.join
+      node_last = node.is_last_children ? rightup : rightvertical
+      node_children = node[options[:children]].present? && node[options[:children]].length > 0 ? downhorizontal : horizontal
+      option_text = "#{node_level}#{node_last}#{node_children}#{left}".html_safe + "#{node_text}"
       option_value = node[options[:option_value]]
       ret.push [option_text, option_value]
     end
