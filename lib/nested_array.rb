@@ -7,6 +7,9 @@ module NestedArray
   class Array < ::Array
     include NestedArray::Nested
   end
+
+  class Engine < ::Rails::Engine
+  end
 end
 
 class Array
