@@ -540,3 +540,10 @@ puts nested.pretty_inspect
 # Работа с древовидными массивами
 gem "nested_array", path: "../nested_array"
 ```
+
+Часто используемые команды
+
+```sh
+gem build
+gem push ./nested_array-…
+```
