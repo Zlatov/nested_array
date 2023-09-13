@@ -1,1 +1,4 @@
---require spec_helper
+--color # Вывод в цвете
+--require spec_helper # Подключить файл по умолчанию
+--order rand # В случайном порядке
+--format doc # Вывод в формате
