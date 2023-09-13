@@ -150,7 +150,7 @@ puts nested.pretty_inspect
 
 `root_id: 1` — взять потомков узла с `id` равным `1`.
 
-```rb
+```erb
 <% catalogs_of_1 = Catalog.all.to_a.to_nested(root_id: 1) %>
 <ul>
   <% catalogs_of_1.each_nested do |node, origin| %>
@@ -161,6 +161,10 @@ puts nested.pretty_inspect
 </ul>
 ```
 
+Выведет многоуровневый маркированный список потомков узла №1:
+
+![Screenshot](doc/images/2.1.3.1.png)
+
 
 
 
@@ -168,7 +172,7 @@ puts nested.pretty_inspect
 
 `branch_id: 1` — взять узел с `id` равным `1` и всех его потомков.
 
-```rb
+```erb
 <% catalogs_from_1 = Catalog.all.to_a.to_nested(branch_id: 1) %>
 <ul>
   <% catalogs_from_1.each_nested do |node, origin| %>
@@ -178,6 +182,10 @@ puts nested.pretty_inspect
   <% end %>
 </ul>
 ```
+
+Выведет узел №1 и его потомков:
+
+![Screenshot](doc/images/2.1.3.2.png)
 
 
 ### <a id="2.2"></a>Отображение древовидных структур [↑](#Оглавление "К оглавлению")
@@ -194,9 +202,7 @@ puts nested.pretty_inspect
     <%= node.after %>
   <% end %>
 </ul>
-```
 
-```erb
 <ol>
   <% @catalogs.to_a.to_nested.each_nested ul: '<ol>', _ul: '</ol>' do |node, origin| %>
     <%= node.before %>
@@ -205,6 +211,8 @@ puts nested.pretty_inspect
   <% end %>
 </ol>
 ```
+
+![Screenshot](doc/images/2.2.1.1.png)
 
 
 
@@ -238,6 +246,9 @@ puts nested.pretty_inspect
 </div>
 ```
 
+![Screenshot](doc/images/2.2.1.2.png)
+
+
 
 
 
@@ -245,12 +256,11 @@ puts nested.pretty_inspect
 
 Для изменения шаблонов вывода в зависимости от данных узла мы можем проверять
 поля узла `node.li` и `node.ul`. Если поля не пустые, то вместо вывода их
-содержимого подставлять собственные шаблоны.
+содержимого подставлять собственный динамичный html.
 
-Ниже приведены два примера, вывод полей узла `node.li`, `node.ul`, `node._` и
-замена полей на динамичные шаблоны. Стоит отметить, что поле `node.li` всегда
-присутствует в узле, в отличие от `node.ul`.
+Вывод имеющихся шаблонов узла (`node.li`, `node.ul` и `node._`):
 
+```erb
 <ul>
   <% @catalogs.to_a.to_nested.each_nested do |node, origin| %>
     <%= node.li -%>
@@ -259,7 +269,13 @@ puts nested.pretty_inspect
     <%= node._ -%>
   <% end %>
 </ul>
+```
 
+![Screenshot](doc/images/2.2.1.3-1.png)
+
+Замена шаблонов на динамичный html:
+
+```erb
 <% content_for :head do %>
   <style>
     li.level-0 {color: red;}
@@ -280,12 +296,19 @@ puts nested.pretty_inspect
     <%= node._ -%>
   <% end %>
 </ul>
+```
+
+![Screenshot](doc/images/2.2.1.3-2.png)
+
+Стоит отметить, что поле `node.li` всегда присутствует в узле, в отличие от
+`node.ul`.
 
 
 
 
 ##### <a id="2.2.1.4"></a>Расскрывающийся список на основе тега `<details></details>` [↑](#Оглавление "К оглавлению")
 
+```erb
 <ul class="nested_array-details">
   <% @catalogs.to_a.to_nested.each_nested details: true do |node, origin| %>
     <%= node.before %>
@@ -293,7 +316,14 @@ puts nested.pretty_inspect
     <%= node.after %>
   <% end %>
 </ul>
+```
 
+![Screenshot](doc/images/2.2.1.4-1.png)
+
+По умолчанию подуровни скрыты, можно управлять отображением подуровней передавая
+опцию в метод узла: `node.after(open: …)`:
+
+```erb
 <ul class="nested_array-details">
   <% @catalogs.to_a.to_nested.each_nested details: true do |node, origin| %>
     <%= node.before %>
@@ -301,11 +331,16 @@ puts nested.pretty_inspect
     <%= node.after(open: node.is_has_children) %>
   <% end %>
 </ul>
+```
+
+![Screenshot](doc/images/2.2.1.4-2.png)
+
 
 
 
 ##### <a id="2.2.1.5"></a>Формирование и вывод собственных шаблонов опираясь на изменение уровня узла `node.level` [↑](#Оглавление "К оглавлению")
 
+```erb
 <% content_for :head do %>
   <style>
     div.children {margin-left: 1em;}
@@ -363,6 +398,9 @@ puts nested.pretty_inspect
     </div>
   <% end %>
 </div>
+```
+
+![Screenshot](doc/images/2.2.1.5.png)
 
 
 
@@ -371,36 +409,52 @@ puts nested.pretty_inspect
 
 ##### <a id="2.2.2.1"></a>Добавление псевдографики перед именем модели методом `nested_to_options` [↑](#Оглавление "К оглавлению")
 
+```erb
 <% options = @catalogs.to_a.to_nested.nested_to_options(:name, :id) %>
 <pre><code><%= options.pluck(0).join($/) %>
 </code></pre>
+```
+
+![Screenshot](doc/images/2.2.2.1.png)
 
 
 
 
 ##### <a id="2.2.2.2"></a>Тонкая псевдографика [↑](#Оглавление "К оглавлению")
 
+```erb
 <% options = @catalogs.to_a.to_nested.nested_to_options(:name, :id, thin_pseudographic: true) %>
 <pre><code><%= options.pluck(0).join($/) %>
 </code></pre>
+```
+
+![Screenshot](doc/images/2.2.2.2.png)
 
 
 
 
 ##### <a id="2.2.2.3"></a>Собственная певдографика [↑](#Оглавление "К оглавлению")
 
+```erb
 <% options = @catalogs.to_a.to_nested.nested_to_options(:name, :id, pseudographics: %w(┬ ─ ❇ ├ └ &nbsp; │)) %>
 <pre><code><%= options.pluck(0).join($/).html_safe %>
 </code></pre>
+```
+
+![Screenshot](doc/images/2.2.2.3.png)
 
 
 
 
 ##### <a id="2.2.2.4"></a>Увеличение отступа в собственной псевдографике [↑](#Оглавление "К оглавлению")
 
+```erb
 <% options = @catalogs.to_a.to_nested.nested_to_options(:name, :id, pseudographics: ['─┬', '──', '─&nbsp;', '&nbsp;├', '&nbsp;└', '&nbsp;&nbsp;', '&nbsp;│']) %>
 <pre><code><%= options.pluck(0).join($/).html_safe %>
 </code></pre>
+```
+
+![Screenshot](doc/images/2.2.2.4.png)
 
 
 
@@ -409,6 +463,7 @@ puts nested.pretty_inspect
 
 #### <a id="2.2.3.1"></a>С хелпером `form.select` [↑](#Оглавление "К оглавлению")
 
+```erb
 <%= form_with(model: Catalog.find(11), url: root_path, method: :get) do |form| %>
   <%= form.select :parent_id,
     @catalogs.to_a.to_nested.nested_to_options(:name, :id),
@@ -422,12 +477,16 @@ puts nested.pretty_inspect
     }
   %>
 <% end %>
+```
+
+![Screenshot](doc/images/2.2.3.1.png)
 
 
 
 
 #### <a id="2.2.3.2"></a>С хелперами `form.select` и `options_for_select` [↑](#Оглавление "К оглавлению")
 
+```erb
 <%= form_with(model: Catalog.find(11), url: root_path, method: :get) do |form| %>
   <%= form.select :parent_id,
     options_for_select(
@@ -443,12 +502,16 @@ puts nested.pretty_inspect
     }
   %>
 <% end %>
+```
+
+![Screenshot](doc/images/2.2.3.2.png)
 
 
 
 
 #### <a id="2.2.3.3"></a>Раскрывающийся список с переключателями `form.radio_button` [↑](#Оглавление "К оглавлению")
 
+```erb
 <%= form_with(model: nil, url: root_path, method: :get) do |form| %>
   <ul class="nested_array-details">
     <% @catalogs.to_a.to_nested.each_nested details: true do |node, origin| %>
@@ -460,18 +523,9 @@ puts nested.pretty_inspect
     <% end %>
   </ul>
 <% end %>
+```
 
-
-
-
-
-
-
-
-
-
-
-
+![Screenshot](doc/images/2.2.3.3.png)
 
 
 
