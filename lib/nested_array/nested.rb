@@ -62,48 +62,43 @@ module NestedArray::Nested
     cache = {}
     nested = options[:hashed] ? {} : []
     # Перебираем элементы в любом порядке!
-    self.each do |value|
-      origin = value
-      value = value.serializable_hash if !value.is_a? Hash
+    self.each do |origin|
+      value = origin.is_a?(Hash) ? origin : origin.serializable_hash
       # 1. Если нет родителя текущего элемента, и текущий элемент не корневой, то:
       # 1.1 создадим родителя
       # 1.2 поместим в кэш
-      if !(cache.key? value[fields[:parent_id]]) && (value[fields[:parent_id]] != options[:root_id])
+      if !(cache.key? value[options[:parent_id]]) && (value[options[:parent_id]] != options[:root_id])
         # 1.1
         temp = OpenStruct.new
         temp[options[:id]] = value[options[:parent_id]]
         temp[options[:parent_id]] = nil
+        temp[options[:level]] = nil
         # 1.2
-        cache[value[fields[:parent_id]]] = temp
+        cache[value[options[:parent_id]]] = temp
       end
       # 2. Если текущий элемент уже был создан, значит он был чьим-то родителем, тогда:
       # 2.1 обновим в нем информацию о parent_id и другие не зарезервированные поля.
       # 2.2 поместим в родителя
-      if cache.key? value[fields[:id]]
+      if cache.key? value[options[:id]]
         # 2.1
-        cache[value[fields[:id]]][options[:parent_id]] = value[options[:parent_id]]
-        value.keys.each do |field|
-          if fields.keys.exclude? field.to_sym
-            cache[value[fields[:id]]][field] = value[field]
-          end
-        end
-        cache[value[fields[:id]]].origin = origin
+        cache[value[options[:id]]][options[:parent_id]] = value[options[:parent_id]]
+        cache[value[options[:id]]].origin = origin
         # 2.2
         # Если текущий элемент не корневой - поместим в родителя, беря его из кэш
-        if value[fields[:parent_id]] != options[:root_id]
-          cache[value[fields[:parent_id]]][fields[:children]] ||= options[:hashed] ? {} : []
+        if value[options[:parent_id]] != options[:root_id]
+          cache[value[options[:parent_id]]][options[:children]] ||= options[:hashed] ? {} : []
           if options[:hashed]
-            cache[value[fields[:parent_id]]][fields[:children]][value[fields[:id]]] = nested[value[fields[:id]]]
+            cache[value[options[:parent_id]]][options[:children]][value[options[:id]]] = nested[value[options[:id]]]
           else
-            cache[value[fields[:parent_id]]][fields[:children]] << cache[value[fields[:id]]]
+            cache[value[options[:parent_id]]][options[:children]] << cache[value[options[:id]]]
           end
         # иначе, текущий элемент корневой, поместим в nested
         else
-          if options[:branch_id].nil? || options[:branch_id] == value[fields[:id]]
+          if options[:branch_id].nil? || options[:branch_id] == value[options[:id]]
             if options[:hashed]
-              nested[value[fields[:id]]] = cache[value[fields[:id]]]
+              nested[value[options[:id]]] = cache[value[options[:id]]]
             else
-              nested << cache[value[fields[:id]]]
+              nested << cache[value[options[:id]]]
             end
           end
         end
@@ -116,30 +111,26 @@ module NestedArray::Nested
         temp = OpenStruct.new
         temp[options[:id]] = value[options[:id]]
         temp[options[:parent_id]] = value[options[:parent_id]]
-        value.keys.each do |field|
-          if fields.keys.exclude? field.to_sym
-            temp[field] = value[field]
-          end
-        end
+        temp[options[:level]] = nil
         temp.origin = origin
         # 3.2
-        cache[value[fields[:id]]] = temp
+        cache[value[options[:id]]] = temp
         # 3.3
         # Если текущий элемент не корневой - поместим в родителя, беря его из кэш
-        if value[fields[:parent_id]] != options[:root_id]
-          cache[value[fields[:parent_id]]][fields[:children]] ||= options[:hashed] ? {} : []
+        if value[options[:parent_id]] != options[:root_id]
+          cache[value[options[:parent_id]]][options[:children]] ||= options[:hashed] ? {} : []
           if options[:hashed]
-            cache[value[fields[:parent_id]]][fields[:children]][value[fields[:id]]] = cache[value[fields[:id]]]
+            cache[value[options[:parent_id]]][options[:children]][value[options[:id]]] = cache[value[options[:id]]]
           else
-            cache[value[fields[:parent_id]]][fields[:children]] << cache[value[fields[:id]]]
+            cache[value[options[:parent_id]]][options[:children]] << cache[value[options[:id]]]
           end
         # иначе, текущий элемент корневой, поместим в nested
         else
-          if options[:branch_id].nil? || options[:branch_id] == value[fields[:id]]
+          if options[:branch_id].nil? || options[:branch_id] == value[options[:id]]
             if options[:hashed]
-              nested[value[fields[:id]]] = cache[value[fields[:id]]]
+              nested[value[options[:id]]] = cache[value[options[:id]]]
             else
-              nested << cache[value[fields[:id]]]
+              nested << cache[value[options[:id]]]
             end
           end
         end
