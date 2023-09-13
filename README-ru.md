@@ -196,7 +196,7 @@ puts nested.pretty_inspect
 </ul>
 ```
 
-```rb
+```erb
 <ol>
   <% @catalogs.to_a.to_nested.each_nested ul: '<ol>', _ul: '</ol>' do |node, origin| %>
     <%= node.before %>
@@ -213,13 +213,18 @@ puts nested.pretty_inspect
 
 Вместо `<ul><li>`/`<ol><li>`
 
+```erb
 <% content_for :head do %>
   <style>
-    .ul { margin-left: 2em; }
+    /* Вертикальные отступы узла */
+    div.li { margin: .5em 0; }
+    /* Отступ уровней (children) */
+    div.ul { margin-left: 2em; }
   </style>
 <% end %>
 
 <div class="ul">
+  <%# Переопределение открывающих и закрывающих тегов шаблонов. %>
   <% @catalogs.to_a.to_nested.each_nested(
     ul: '<div class="ul">',
     _ul: '</div>',
@@ -231,6 +236,8 @@ puts nested.pretty_inspect
     <%= node.after -%>
   <% end %>
 </div>
+```
+
 
 
 
