@@ -328,7 +328,7 @@ module NestedArray::Nested
   # ```
   # [['option_text1', 'option_value1'],['option_text2', 'option_value2'],…]
   # ```
-  def nested_to_options(options = {})
+  def nested_to_options(origin_text, origin_value, options = {})
     options = NESTED_OPTIONS.merge options
     ret = []
 
@@ -337,12 +337,12 @@ module NestedArray::Nested
 
     each_nested do |node, origin|
       last[node.level + 1] = node.is_last_children
-      node_text = node[options[:option_text]]
+      node_text = origin.send(origin_text)
       node_level = (1..node.level).map{|l| last[l] == true ? space : vertical}.join
       node_last = node.is_last_children ? rightup : rightvertical
       node_children = node[options[:children]].present? && node[options[:children]].length > 0 ? downhorizontal : horizontal
       option_text = "#{node_level}#{node_last}#{node_children}#{left}".html_safe + "#{node_text}"
-      option_value = node[options[:option_value]]
+      option_value = origin.send(origin_value)
       ret.push [option_text, option_value]
     end
     ret
