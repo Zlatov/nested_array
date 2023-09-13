@@ -544,6 +544,10 @@ gem "nested_array", path: "../nested_array"
 Часто используемые команды
 
 ```sh
+# rspec управляет загружаемыми гемами, поэтому сам rspec запускается НЕ `bundle
+# exec rspec`, а просто `rspec` или `./bin/rspec`.
+rspec ./spec/lib/nested_array_spec.rb
+rspec ./spec/lib/nested_array/nested_spec.rb
 gem build
 gem push ./nested_array-…
 ```
