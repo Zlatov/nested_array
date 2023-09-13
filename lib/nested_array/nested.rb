@@ -11,22 +11,19 @@ module NestedArray::Nested
       # Имена полей для получения/записи информации, чувствительны к string/symbol
       id: 'id',
       parent_id: 'parent_id',
+
       children: 'children',
       level: 'level',
 
       # Параметры для преобразования в nested
       hashed: false,
-      add_level: false,
       root_id: nil,
+      branch_id: nil,
 
       # Параметры для преобразования в html
       tabulated: true,
       inline: false,
       tab: "\t",
-      ul:  '<ul>',
-      _ul: '</ul>',
-      li:  '<li>',
-      _li: '</li>',
 
       # Параматры для "склеивания" вложенных структур
       path_separator: '-=path_separator=-',
@@ -35,140 +32,74 @@ module NestedArray::Nested
       # Настройки формирования массива для опций тега <select>
       option_value: 'id', # Что брать в качестве значений при формировании опций селекта.
       option_text: 'name',
+      thin_option: false,
+      pseudographics:      %w(┳ ━ ╸ ┣ ┗ &nbsp; ┃),
+      thin_pseudographics: %w(┬ ─ ╴ ├ └ &nbsp; │),
+
+      # Выводить html теги от раскрывающегося списка на основе тега details.
+      details: false,
+
+      ul:  '<ul>',
+      _ul: '</ul>',
+      li:  '<li>',
+      _li: '</li>',
+
+      uld:  '<details><summary></summary><ul>',
+      uldo:  '<details open><summary></summary><ul>',
+      _uld: '</ul></details>'
     }
   end
 
-  # 
-  # Перебирает вложенную стуктуру.
-  # 
-  def each_nested options={}
+  def to_nested(options = {})
     options = NESTED_OPTIONS.merge options
-    level = 0
-    cache = []
-    cache[level] = self.clone
-    parents = []
-    parents[level] = nil
-    i = []
-    i[level] = 0
-    while level >= 0
-      node = cache[level][i[level]]
-      i[level]+= 1
-      if node != nil
-        is_last_children = cache[level][i[level]].blank?
-
-        yield(node.clone, parents.clone, level, is_last_children, node.origin)
-
-        if !node[options[:children]].nil? && node[options[:children]].length > 0
-          level+= 1
-          parents[level] = node.clone
-          cache[level] = node[options[:children]]
-          i[level] = 0
-        end
-      else
-        parents[level] = nil
-        level-= 1
-      end
-    end
-    self
-  end
-
-  def each_nested! options={}
-    options = NESTED_OPTIONS.merge options
-    level = 0
-    cache = []
-    cache[level] = self
-    parents = []
-    parents[level] = nil
-    i = []
-    i[level] = 0
-    while level >= 0
-      node = cache[level][i[level]]
-      i[level]+= 1
-      if node != nil
-        is_last_children = cache[level][i[level]].blank?
-
-        yield(node, parents, level, is_last_children, node.origin)
-
-        if !node[options[:children]].nil? && node[options[:children]].length > 0
-          level+= 1
-          parents[level] = node
-          cache[level] = node[options[:children]]
-          i[level] = 0
-        end
-      else
-        parents[level] = nil
-        level-= 1
-      end
-    end
-    self
-  end
-
-  def to_nested options={}
-    options = NESTED_OPTIONS.merge options
+    # Зарезервированные поля узла.
     fields = {
       id: options[:id],
       parent_id: options[:parent_id],
       level: options[:level],
       children: options[:children],
     }
-    fields.delete :level if !options[:add_level]
     cache = {}
     nested = options[:hashed] ? {} : []
     # Перебираем элементы в любом порядке!
-    self.each do |value|
-      origin = value
-      value = value.serializable_hash if !value.is_a? Hash
+    self.each do |origin|
+      value = origin.is_a?(Hash) ? origin : origin.serializable_hash
       # 1. Если нет родителя текущего элемента, и текущий элемент не корневой, то:
       # 1.1 создадим родителя
       # 1.2 поместим в кэш
-      if !(cache.key? value[fields[:parent_id]]) && (value[fields[:parent_id]] != options[:root_id])
+      if !(cache.key? value[options[:parent_id]]) && (value[options[:parent_id]] != options[:root_id])
         # 1.1
         temp = OpenStruct.new
-        fields.each do |key, field|
-          case key
-          when :id
-            temp[field] = value[fields[:parent_id]]
-          when :children
-            # не создаём поле
-          else
-            temp[field] = nil
-          end
-        end
+        temp[options[:id]] = value[options[:parent_id]]
+        temp[options[:parent_id]] = nil
+        temp[options[:level]] = nil
         # 1.2
-        cache[value[fields[:parent_id]]] = temp
+        cache[value[options[:parent_id]]] = temp
       end
       # 2. Если текущий элемент уже был создан, значит он был чьим-то родителем, тогда:
-      # 2.1 обновим в нем информацию
+      # 2.1 обновим в нем информацию о parent_id и другие не зарезервированные поля.
       # 2.2 поместим в родителя
-      if cache.key? value[fields[:id]]
+      if cache.key? value[options[:id]]
         # 2.1
-        fields.each do |key, field|
-          case key
-          when :id, :children
-            # не обновляем информацию
-          else
-            cache[value[fields[:id]]][field] = value[field]
-          end
-        end
-        value.keys.each do |field|
-          cache[value[fields[:id]]][field] = value[field] if !(field.in? fields)
-        end
-        cache[value[fields[:id]]].origin = origin
+        cache[value[options[:id]]][options[:parent_id]] = value[options[:parent_id]]
+        cache[value[options[:id]]].origin = origin
         # 2.2
         # Если текущий элемент не корневой - поместим в родителя, беря его из кэш
-        if value[fields[:parent_id]] != options[:root_id]
-          cache[value[fields[:parent_id]]][fields[:children]] ||= options[:hashed] ? {} : []
+        if value[options[:parent_id]] != options[:root_id]
+          cache[value[options[:parent_id]]][options[:children]] ||= options[:hashed] ? {} : []
           if options[:hashed]
-            cache[value[fields[:parent_id]]][fields[:children]][value[fields[:id]]] = nested[value[fields[:id]]]
+            cache[value[options[:parent_id]]][options[:children]][value[options[:id]]] = nested[value[options[:id]]]
           else
-            cache[value[fields[:parent_id]]][fields[:children]] << cache[value[fields[:id]]]
+            cache[value[options[:parent_id]]][options[:children]] << cache[value[options[:id]]]
           end
         # иначе, текущий элемент корневой, поместим в nested
         else
-          if options[:hashed]
-            nested[value[fields[:id]]] = cache[value[fields[:id]]]
-          else
-            nested << cache[value[fields[:id]]]
+          if options[:branch_id].nil? || options[:branch_id] == value[options[:id]]
+            if options[:hashed]
+              nested[value[options[:id]]] = cache[value[options[:id]]]
+            else
+              nested << cache[value[options[:id]]]
+            end
           end
         end
       # 3. Иначе, текущий элемент не создан, тогда:
@@ -178,72 +109,65 @@ module NestedArray::Nested
       else
         # 3.1
         temp = OpenStruct.new
-        fields.each do |key, field|
-          case key
-          when :id
-            temp[field] = value[field]
-          when :parent_id
-            temp[field] = value[field]
-          when :children
-            # ничего не делаем
-          else
-            temp[field] = value[field]
-          end
-        end
-        value.keys.each do |field|
-          temp[field] = value[field] if !(field.in? fields)
-        end
+        temp[options[:id]] = value[options[:id]]
+        temp[options[:parent_id]] = value[options[:parent_id]]
+        temp[options[:level]] = nil
         temp.origin = origin
         # 3.2
-        cache[value[fields[:id]]] = temp
+        cache[value[options[:id]]] = temp
         # 3.3
         # Если текущий элемент не корневой - поместим в родителя, беря его из кэш
-        if value[fields[:parent_id]] != options[:root_id]
-          cache[value[fields[:parent_id]]][fields[:children]] ||= options[:hashed] ? {} : []
+        if value[options[:parent_id]] != options[:root_id]
+          cache[value[options[:parent_id]]][options[:children]] ||= options[:hashed] ? {} : []
           if options[:hashed]
-            cache[value[fields[:parent_id]]][fields[:children]][value[fields[:id]]] = cache[value[fields[:id]]]
+            cache[value[options[:parent_id]]][options[:children]][value[options[:id]]] = cache[value[options[:id]]]
           else
-            cache[value[fields[:parent_id]]][fields[:children]] << cache[value[fields[:id]]]
+            cache[value[options[:parent_id]]][options[:children]] << cache[value[options[:id]]]
           end
         # иначе, текущий элемент корневой, поместим в nested
         else
-          if options[:hashed]
-            nested[value[fields[:id]]] = cache[value[fields[:id]]]
-          else
-            nested << cache[value[fields[:id]]]
+          if options[:branch_id].nil? || options[:branch_id] == value[options[:id]]
+            if options[:hashed]
+              nested[value[options[:id]]] = cache[value[options[:id]]]
+            else
+              nested << cache[value[options[:id]]]
+            end
           end
         end
       end
     end
-    if options[:add_level]
-      level = 0
-      cache = []
-      cache[level] = nested
-      i = []
-      i[level] = 0
-      while level >= 0
-        node = cache[level][i[level]]
-        i[level]+= 1
-        if node != nil
 
-          node[options[:level]] = level
+    # Добавление level к узлу.
+    level = 0
+    cache = []
+    cache[level] = nested
+    i = []
+    i[level] = 0
+    while level >= 0
+      node = cache[level][i[level]]
+      i[level] += 1
+      if node != nil
 
-          if !node[options[:children]].nil? && node[options[:children]].length > 0
-            level+= 1
-            cache[level] = node[options[:children]]
-            i[level] = 0
-          end
-        else
-          level-= 1
+        node[options[:level]] = level
+
+        if !node[options[:children]].nil? && node[options[:children]].length > 0
+          level += 1
+          cache[level] = node[options[:children]]
+          i[level] = 0
         end
+      else
+        level -= 1
       end
     end
+
     nested
   end
 
-  def nested_to_html options={}
+  # 
+  # Перебирает вложенную стуктуру.
+  # 
+  def each_nested(options = {})
     options = NESTED_OPTIONS.merge options
-    html = ''
     level = 0
     cache = []
     cache[level] = self.clone
@@ -251,43 +175,142 @@ module NestedArray::Nested
     parents[level] = nil
     i = []
     i[level] = 0
+    prev_level = nil
     while level >= 0
       node = cache[level][i[level]]
-      i[level]+= 1
+      i[level] += 1
       if node != nil
+        clone_node = node.clone
 
-        node_html, node_options = yield(node.clone, parents.clone, level)
-        html+= options[:tab] * (level * 2 + 1) if options[:tabulated]
-        html+= node_options&.[](:li) || options[:li]
-        html+= node_html.to_s
+        # Текущий узел является последним ребёнком своего родителя:
+        clone_node.is_last_children = cache[level][i[level]].blank?
+        # Текущий узел имеет детей:
+        clone_node.is_has_children = !node[options[:children]].nil? && node[options[:children]].length > 0
+        # Текущий узел последний в дереве:
+        clone_node.is_last = clone_node.is_last_children && !clone_node.is_has_children && (0..(clone_node.level)).to_a.map{|l| cache[l][i[l]].blank?}.all?(true)
+
+        next_level = if clone_node.is_has_children
+          level + 1
+        elsif clone_node.is_last_children
+          nl = nil
+          (0..clone_node.level).to_a.reverse.each do |l|
+            if cache[l][i[l]].present?
+              nl = l
+              break
+            end
+          end
+          nl
+        else
+          level
+        end
+
+        clone_node.parents = parents.clone
+
+        # В текущем узле всегда есть li
+        clone_node.before = options[:li].html_safe
+        clone_node.li = clone_node.before
+        # Следующий уровень тот же? — текущий закрываем просто.
+        if next_level.present? && next_level == clone_node.level
+          clone_node._ = options[:_li].html_safe
+        end
+        # Следующий уровень понизится? - текущий закрываем сложно.
+        if next_level.present? && next_level < clone_node.level
+          clone_node._ = options[:_li]
+          (clone_node.level - next_level).times do |t|
+            clone_node._ += options[:details] ? options[:_uld] + options[:_li] : options[:_ul] + options[:_li]
+          end
+          clone_node._ = clone_node._.html_safe
+        end
+        # Следующий уровень повысится? — открываем подуровень.
+        if clone_node.is_has_children
+          clone_node.ul = if options[:details]
+            options[:uld].html_safe
+          else
+            options[:ul].html_safe
+          end
+        end
+        # Последний в дереве? — последние закрывающие теги.
+        if clone_node.is_last
+          clone_node._ = options[:_li]
+          clone_node.level.times do |t|
+            clone_node._ += options[:details] ? options[:_uld] + options[:_li] : options[:_ul] + options[:_li]
+          end
+          clone_node._ = clone_node._.html_safe
+        end
+
+        clone_node.define_singleton_method(:after) do |*args|
+          ret = ''
+          # Следующий уровень тот же? — текущий закрываем просто.
+          if next_level.present? && next_level == clone_node.level
+            ret += options[:_li]
+          end
+          # Следующий уровень понизится? - текущий закрываем сложно.
+          if next_level.present? && next_level < clone_node.level
+            ret += options[:_li]
+            (clone_node.level - next_level).times do |t|
+              ret += options[:details] ? options[:_uld] + options[:_li] : options[:_ul] + options[:_li]
+            end
+          end
+          # Следующий уровень повысится? — открываем подуровень.
+          if self.is_has_children
+            if options[:details]
+              ret += args.present? && args[0]&.[](:open) == true ? options[:uldo] : options[:uld]
+            else
+              ret += options[:ul]
+            end
+          end
+          # Последний в дереве? — последние закрывающие теги.
+          if self.is_last
+            ret += options[:_li]
+            self.level.times do |t|
+              ret += options[:details] ? options[:_uld] + options[:_li] : options[:_ul] + options[:_li]
+            end
+          end
+          ret.html_safe
+        end
+
+        yield(clone_node, clone_node.origin)
+
+        prev_level = node.level
 
         if !node[options[:children]].nil? && node[options[:children]].length > 0
-          level+= 1
-          html+= "\n" if !options[:inline]
-          html+= options[:tab] * (level * 2) if options[:tabulated]
-          html+= node_options&.[](:ul) || options[:ul]
-          html+= "\n" if !options[:inline]
-          parents[level] = node.clone
+          level += 1
+          parents[level] = clone_node
           cache[level] = node[options[:children]]
           i[level] = 0
-        else
-          html+= options[:_li]
-          html+= "\n" if !options[:inline]
         end
       else
         parents[level] = nil
-        if level > 0
-          html+= options[:tab] * (level * 2) if options[:tabulated]
-          html+= options[:_ul]
-          html+= "\n" if !options[:inline]
-          html+= options[:tab] * (level * 2 - 1) if options[:tabulated]
-          html+= options[:_li]
-          html+= "\n" if !options[:inline]
-        end
-        level-= 1
+        level -= 1
       end
     end
-    html.html_safe
+    self
+  end
+
+  def to_flat(options = {})
+    ret = []
+    options = NESTED_OPTIONS.merge options
+    level = 0
+    cache = []
+    cache[level] = self.clone
+    i = []
+    i[level] = 0
+    while level >= 0
+      node = cache[level][i[level]]
+      i[level] += 1
+      if node != nil
+        ret.push node.origin
+
+        if !node[options[:children]].nil? && node[options[:children]].length > 0
+          level += 1
+          cache[level] = node[options[:children]]
+          i[level] = 0
+        end
+      else
+        level -= 1
+      end
+    end
+    ret
   end
 
   # 
@@ -296,18 +319,21 @@ module NestedArray::Nested
   # ```
   # [['option_text1', 'option_value1'],['option_text2', 'option_value2'],…]
   # ```
-  def nested_to_options options={}
+  def nested_to_options(origin_text, origin_value, options = {})
     options = NESTED_OPTIONS.merge options
     ret = []
+
     last = []
-    each_nested do |node, parents, level, is_last|
-      last[level+1] = is_last
-      node_text = node[options[:option_text]]
-      node_level = (1..level).map{|l| last[l] == true ? '&nbsp;' : '┃'}.join
-      node_last = is_last ? '┗' : '┣'
-      node_children = node[options[:children]].present? && node[options[:children]].length > 0 ? '┳' : '━'
-      option_text = "#{node_level}#{node_last}#{node_children}╸".html_safe + "#{node_text}"
-      option_value = node[options[:option_value]]
+    downhorizontal, horizontal, left, rightvertical, rightup, space, vertical = options[:thin_pseudographic] ? options[:thin_pseudographics] : options[:pseudographics]
+
+    each_nested do |node, origin|
+      last[node.level + 1] = node.is_last_children
+      node_text = origin.send(origin_text)
+      node_level = (1..node.level).map{|l| last[l] == true ? space : vertical}.join
+      node_last = node.is_last_children ? rightup : rightvertical
+      node_children = node[options[:children]].present? && node[options[:children]].length > 0 ? downhorizontal : horizontal
+      option_text = "#{node_level}#{node_last}#{node_children}#{left}".html_safe + "#{node_text}"
+      option_value = origin.send(origin_value)
       ret.push [option_text, option_value]
     end
     ret
