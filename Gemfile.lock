@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    nested_array (3.0.0)
+    nested_array (3.0.1)
 
 GEM
   remote: https://rubygems.org/
