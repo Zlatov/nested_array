@@ -1,0 +1,4 @@
+--markup markdown
+--markup-provider redcarpet
+--exclude spec
+lib/**/*.rb

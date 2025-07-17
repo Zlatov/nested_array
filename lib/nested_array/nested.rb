@@ -50,6 +50,7 @@ module NestedArray::Nested
     }
   end
 
+  # Преобразует во вложенную структуру на основании parent_id
   def to_nested(options = {})
     options = NESTED_OPTIONS.merge options
     # Зарезервированные поля узла.
@@ -313,9 +314,9 @@ module NestedArray::Nested
     ret
   end
 
-  # 
-  # Возвращает массив для формирования опций html-тега <select>
+  # Возвращает массив для формирования опций html-тега &lt;select&gt;
   # с псевдографикой, позволяющей вывести древовидную структуру.
+  # 
   # ```
   # [['option_text1', 'option_value1'],['option_text2', 'option_value2'],…]
   # ```
