@@ -539,9 +539,12 @@ puts nested.pretty_inspect
 # exec rspec`, а просто `rspec` или `./bin/rspec`.
 rspec ./spec/lib/nested_array_spec.rb
 rspec ./spec/lib/nested_array/nested_spec.rb
-bundle exec yard doc # Докумментировать в doc/_index.html
-gem build
-gem push ./nested_array-…
+rspec                            # Прогон тестов
+subl lib/nested_array/version.rb # Обновление версии
+bundle exec yard doc             # Обновление документации в doc/_index.html
+git …                            # Git-фиксация в origin/master и тег
+gem build                        # Сборка гема
+gem push ./nested_array-…        # Публикация гема
 ```
 
 Для подключения локальной версии гема в rails замените в строке подключения
